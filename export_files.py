@@ -16,12 +16,12 @@ def to_zip(path: str) -> zip:
 
 
 def scan_files(file_extension='.txt') -> list:
-    ejemplo_dir = 'Z:/r90'
+    raiz_dir = 'Z:/r90'
 
-    with os.scandir(ejemplo_dir) as ficheros:
+    with os.scandir(raiz_dir) as ficheros:
 
         subdirectorios = [
-            f'{ejemplo_dir}/{fichero.name}/' for fichero in ficheros if fichero.is_dir()]
+            f'{raiz_dir}/{fichero.name}/' for fichero in ficheros if fichero.is_dir()]
 
     files = []
     for file in subdirectorios:
