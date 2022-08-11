@@ -2,26 +2,17 @@
 
 ## Descripción
 
-Bot de Telegram para controlar la recepción de documentos, control de timbrados, color de carpetas y más cosas.
-
-Contasario va ser capaz de guardar los mensajes de recepcion de los documentos en un excel, los guardará por:
-
-- Id
-- Fecha
-- Cliente - nombre y apellido
-- Recepcion de documento: que contará con dos opciones:
-    - Recepción
-    - Retiro
-- Vencimiento de Timbrado: deberá enviar un mensaje 30 dias antes de su vencimiento, avisando así la caducidad del mismo.
+Bot de Telegram para controlar la recepción de documentos, control de timbrados, gestion de carpetas fisicas, exportacion de datos para la R-90.
 
 ## Funciones
 
 - /ayuda
     - Tendrá todas la funciones enlistadas
 - /nuevocliente
-    - nombre y apellido
+    - Agrega un nuevo cliente a la BBDD
 - /listaclientes
-
+    - Genera una lista
+    
 ### Editar Clientes
 
 - /agregartimbrado
@@ -32,5 +23,15 @@ Contasario va ser capaz de guardar los mensajes de recepcion de los documentos e
     - /retirodocumentos
         - obs
 - /colorcarpeta
+
+## Busqueda
+
+- /buscar_ci
+    - Recibe un numero de ci, lo busca entre los archivos de RUC descargados de Marangatu y compara con otra busqueda para saber si es contribuyente o no.
+
+## Exportacion - Descargas
+
 - /export
-    - Formatea y exporta en zip los archivos para adjuntar a la R-90
+    - Formatea los datos del archivo xls, lo convierte en txt tabulado y exporta en zip para adjuntarlo a la R-90 - Marangatu
+- /downloadruc
+    - Descarga los zip de RUC actualizados a la fecha, de la pagina de la set para descomprimirlos y dejarlo en txt para tratado de archivo. 
