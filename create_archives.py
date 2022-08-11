@@ -29,6 +29,7 @@ def create_subdir(dir_name, start_month=None, end_month=None):
 
     dir = 'Z:/r90/'+dir_name
 
+    subs_dir = ''
     if start_month and end_month is not None:
 
         for i in range(start_month, end_month+1):
@@ -39,20 +40,21 @@ def create_subdir(dir_name, start_month=None, end_month=None):
                 dir_month = dir + '/' + '0'+str(i)
 
             if os.path.exists(dir_month):
-                print('Ya existe: ', dir_month)
+                subs_dir += f'Ya existe: {dir_month}\n'
             else:
                 os.mkdir(dir_month)
+                subs_dir += f'Subcarpetas creada: {dir_month} \n'
 
-                print('Subcarpetas creada: ', dir_month)
+    return subs_dir
 
 
 def main() -> None:
 
     dir_name = input('Nombre de la carpeta: ')
 
-    #create_directory(dir_name=dir_name, start_month=5, end_month=12)
+    # create_directory(dir_name=dir_name, start_month=5, end_month=12)
 
-    create_subdir(dir_name=dir_name, start_month=1, end_month=12)
+    print(create_subdir(dir_name=dir_name, start_month=1, end_month=12))
 
 
 if __name__ == '__main__':
