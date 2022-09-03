@@ -112,4 +112,3 @@ def find_identity_data(identity_number: str) -> str:
 
     elif contribuyente is None and not_contribuyente is None:
         return 'No encontre datos...'
-
