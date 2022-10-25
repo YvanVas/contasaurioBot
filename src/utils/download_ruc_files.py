@@ -6,7 +6,7 @@ import requests
 import zipfile
 # from dataBase.postgre_service import all_contribuyentes, put_contribuyente0
 
-from export_files import delete_file
+from utils.export_files import delete_file
 
 PATH = 'archives/rucs'
 SET_URL = 'https://www.set.gov.py'
