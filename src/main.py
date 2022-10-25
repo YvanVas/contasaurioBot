@@ -4,7 +4,7 @@ from random import randint
 import re
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler, ContextTypes, ConversationHandler, filters
-from utils.download_ruc_files import download_zips, unzipping_files, scan_files
+from download_ruc_files import download_zips, unzipping_files, scan_files
 from utils.export_files import xls_to_txt, scan_files, read_file, write_file, to_zip, delete_file
 from utils.search_identity import find_identity_data
 from utils.messages_list import *
@@ -150,14 +150,38 @@ def export_files_r90(update, context):
 
     files = scan_files()
 
+    month_names = {
+        '01':'Enero',
+        '02':'Febrero',
+        '03':'Marzo',
+        '04':'Abril',
+        '05':'Mayo',
+        '06':'Junio',
+        '07':'Julio',
+        '08':'Agosto',
+        '09':'Septiembre',
+        '10':'Octubre',
+        '11':'Noviembre',
+        '12':'Diciembre',
+    }
+
     if files:
 
         files_name = ''
         for file in files:
+            client_name = re.findall('/([a-z]+)/', file)[0]
+            month = month_names[re.findall('/([0-9]+)/', file)[0]]
+
             file_name = re.findall('\w+.txt', file)
             name = file_name[0]
 
-            files_name += name.replace('.txt', '.xls') + '\n'
+            if client_name.capitalize() in files_name:
+                if month in files_name:
+                    files_name += f'{name.replace(".txt", ".xls")}\n' 
+                else:
+                    files_name += f'{month}\n{name.replace(".txt", ".xls")}\n'
+            else:
+                files_name += f'{client_name.capitalize()}:\n{month}\n{name.replace(".txt", ".xls")}\n'
 
         context.bot.send_message(
             chat_id=chat_id, text=f'{files_name} \n  Encontré estos archivos')

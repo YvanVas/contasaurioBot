@@ -20,29 +20,29 @@ def scan_files(file_extension='.txt') -> list:
 
     with os.scandir(raiz_dir) as ficheros:
 
-        subdirectorios = [
+        client_folders = [
             f'{raiz_dir}/{fichero.name}/' for fichero in ficheros if fichero.is_dir()]
 
-    files = []
-    for file in subdirectorios:
+    client_files = []
+    for folder in client_folders:
 
-        with os.scandir(file) as ficheros:
+        with os.scandir(folder) as folders:
 
-            for fichero in ficheros:
+            for month_folder in folders:
 
-                if fichero.is_file():
+                if month_folder.is_file():
 
-                    files.append(file + fichero.name)
+                    client_files.append(month_folder + month_folder.name)
                 else:
-                    sub = file+fichero.name+'/'
+                    sub = folder+month_folder.name+'/'
 
-                    with os.scandir(sub) as ficheros:
+                    with os.scandir(sub) as sub_month_folders:
 
-                        for fichero in ficheros:
-                            if fichero.is_file() and fichero.name.endswith(file_extension):
-                                files.append(sub + fichero.name)
+                        for file in sub_month_folders:
+                            if file.is_file() and file.name.endswith(file_extension):
+                                client_files.append(sub + file.name)
 
-    return files
+    return client_files
 
 
 def xls_to_txt():

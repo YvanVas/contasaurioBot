@@ -2,8 +2,8 @@
 import re
 import requests
 
-from utils.download_ruc_files import scan_files
-from utils.download_ruc_files import read_file
+from download_ruc_files import scan_files
+from download_ruc_files import read_file
 
 
 def search_identity_number(identity_number: str) -> dict | None:
