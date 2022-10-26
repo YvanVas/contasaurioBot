@@ -44,13 +44,3 @@ def add_items(message: str) -> None:
         file.write(items)
         file.write('\n')
     file.close()
-
-
-items = read_list_file()
-print(items)
-
-# message = 'falta boligrafo, 6 carpetas, rotulos'
-
-# add_items(message)
-
-# read_list_file()
