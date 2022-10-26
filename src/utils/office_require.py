@@ -1,6 +1,5 @@
 from datetime import datetime
 
-
 FILE_PATH = 'src/archives/lists/list.txt'
 
 

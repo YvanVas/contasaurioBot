@@ -7,6 +7,7 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, Callb
 from download_ruc_files import download_zips, unzipping_files, scan_files
 from utils.export_files import xls_to_txt, scan_files, read_file, write_file, to_zip, delete_file
 from utils.search_identity import find_identity_data
+from utils import office_require
 from utils.messages_list import *
 
 
@@ -63,7 +64,12 @@ def echo(update: Update, context):
     user = update.message.from_user
     chat_id = update.message.chat_id
 
-    
+    items = re.findall('^falta.+', message)
+
+    if len(items) > 0 :
+        office_require.add_items(items)
+        update.message.reply_text('Ok, agregados a la lista')
+        
 
     if message in agradecimientos:
         message = reply_agradecimientos[msjAleatorio(reply_agradecimientos)]
