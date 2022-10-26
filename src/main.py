@@ -2,6 +2,7 @@ import logging
 import os
 from random import randint
 import re
+from time import sleep
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler, ContextTypes, ConversationHandler, filters
 from download_ruc_files import download_zips, unzipping_files, scan_files
@@ -67,9 +68,28 @@ def echo(update: Update, context):
     items = re.findall('^falta.+', message)
 
     if len(items) > 0 :
-        office_require.add_items(items)
+        office_require.add_items(items[0])
         update.message.reply_text('Ok, agregados a la lista')
         
+    if message == 'qué falta?' or message == 'que falta?':
+        update.message.reply_text('Voy a buscar')
+        sleep(1)
+        items = office_require.read_items()
+        items_message = ''
+        if len(items)>0:
+            update.message.reply_text('Encontré que falta')
+            for item in items:
+                items_message += f'El {item["date"]}\n'
+                for i in item["items"]:
+                    items_message += f'{i.strip()}\n'
+                items_message += '\n'
+            update.message.reply_text(items_message)
+        else: 
+            update.message.reply_text('No hay nada en falta 👍')
+
+    if message == 'comprado': 
+        update.message.reply_text('Ok, borro datos de la lista 👌')
+        office_require.delete_items()
 
     if message in agradecimientos:
         message = reply_agradecimientos[msjAleatorio(reply_agradecimientos)]

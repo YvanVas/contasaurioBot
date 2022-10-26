@@ -12,7 +12,7 @@ def items_format(items: str):
     return items_list
 
 
-def read_list_file() -> list:
+def read_items() -> list:
     items = []
     with open(FILE_PATH, 'r', encoding='utf-8') as file:
 
@@ -31,7 +31,7 @@ def read_list_file() -> list:
 
 def message_format(message: str) -> str:
     date = today()
-    items = message.replace("falta", "").strip()
+    items = message.replace("falta", "")
     # Add date and items
     return f'{date},{items}'
 
@@ -42,4 +42,9 @@ def add_items(message: str) -> None:
     with open(FILE_PATH, 'a', encoding='utf-8') as file:
         file.write(items)
         file.write('\n')
+    file.close()
+
+def delete_items()->None:
+    with open(FILE_PATH, 'w', encoding='utf-8') as file:
+        file.write('')
     file.close()
