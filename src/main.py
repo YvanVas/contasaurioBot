@@ -4,7 +4,7 @@ from random import randint
 import re
 from time import sleep
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler, ContextTypes, ConversationHandler, filters
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler, ContextTypes, ConversationHandler, filters, CallbackContext
 from download_ruc_files import download_zips, unzipping_files, scan_files
 from utils.export_files import xls_to_txt, scan_files, read_file, write_file, to_zip, delete_file
 from utils.search_identity import find_identity_data
@@ -64,6 +64,9 @@ def echo(update: Update, context):
 
     user = update.message.from_user
     chat_id = update.message.chat_id
+
+    # Save information
+    office_require.add_chat_info(message=update.message, user=user)
 
     items = re.findall('^falta.+', message)
 
@@ -327,10 +330,20 @@ def responseOption(update, context):
             text="Ok. Enviame el nuevo nombre:")
 
 
+# def once(context:CallbackContext):
+#     context.bot.send_message(
+#             chat_id=, text='Prueba')
+
+
+
 def main():
     """Inicia el bot con un TOKEN"""
     updater = Updater(
         TOKEN, use_context=True)
+
+    # job = updater.job_queue
+
+    # job.run_once(once, 20)
 
     dp = updater.dispatcher
 
@@ -377,7 +390,7 @@ def main():
     updater.dispatcher.add_error_handler(error)
 
     # Start the Bot
-    updater.start_polling()
+    updater.start_polling(drop_pending_updates=True)
 
     # Run the bot until you press Ctrl-C or the process receives SIGINT,
     # SIGTERM or SIGABRT. This should be used most of the time, since
