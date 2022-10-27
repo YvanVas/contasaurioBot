@@ -1,8 +1,9 @@
 from datetime import datetime
+import os
 
-FILE_PATH = 'src/archives/lists/list.txt'
-CHAT_PATH = 'src/archives/chats/chat.txt'
-GROUP_PATH = 'src/archives/chats/group.txt'
+FILE_PATH = os.getenv['FILE_PATH']
+CHAT_PATH = os.getenv['CHAT_PATH']
+GROUP_PATH = os.getenv['GROUP_PATH']
 
 
 def today() -> datetime:
@@ -31,26 +32,6 @@ def read_items() -> list:
     return items
 
 
-def verify_group(group_id: str) -> bool:
-    with open(GROUP_PATH, 'r', encoding='utf-8') as file:
-        for line in file:
-            if group_id in line:
-                file.close()
-                return True
-    file.close()
-    return False
-
-
-def verify_user(user_id: str) -> bool:
-    with open(CHAT_PATH, 'r', encoding='utf-8') as file:
-        for line in file:
-            if user_id in line:
-                file.close()
-                return True
-    file.close()
-    return False
-
-
 def message_format(message: str) -> str:
     date = today()
     items = message.replace("falta", "")
@@ -73,6 +54,35 @@ def delete_items() -> None:
     file.close()
 
 
+# Save information
+def verify_group(group_id: str) -> bool:
+    with open(GROUP_PATH, 'r', encoding='utf-8') as file:
+        for line in file:
+            if group_id in line:
+                file.close()
+                return True
+    file.close()
+    return False
+
+
+def verify_user(user_id: str) -> bool:
+    with open(CHAT_PATH, 'r', encoding='utf-8') as file:
+        for line in file:
+            if user_id in line:
+                file.close()
+                return True
+    file.close()
+    return False
+
+
+def add_user(user_id: str, user_first_name: str) -> None:
+    verify = verify_user(str(user_id))
+    if verify == False:
+        with open(CHAT_PATH, 'a', encoding='utf-8') as file:
+            file.write(f'{user_id},{user_first_name}\n')
+    file.close()
+
+
 def add_chat_info(message: dict, user: dict):
     chat_id = message['chat']['id']
     chat_name = message['chat']['title']
@@ -86,19 +96,7 @@ def add_chat_info(message: dict, user: dict):
             file.close()
 
         # Add user
-        user_id = user['id']
-        user_first_name = user['first_name']
-
-        verify = verify_user(str(user_id))
-        if verify == False:
-            with open(CHAT_PATH, 'a', encoding='utf-8') as file:
-                file.write(f'{user_id},{user_first_name}\n')
-            file.close()
+        add_user(user['id'], user['first_name'])
     else:
-        user_id = user['id']
-        user_first_name = user['first_name']
-        verify = verify_user(str(user_id))
-        if verify == False:
-            with open(CHAT_PATH, 'a', encoding='utf-8') as file:
-                file.write(f'{user_id},{user_first_name}\n')
-            file.close()
+        # Add user
+        add_user(user['id'], user['first_name'])
