@@ -9,6 +9,7 @@ from download_ruc_files import download_zips, unzipping_files, scan_files
 from utils.export_files import xls_to_txt, scan_files, read_file, write_file, to_zip, delete_file
 from utils.search_identity import find_identity_data
 from utils import office_require
+from utils import nissei_scrapy
 from utils.messages_list import *
 
 
@@ -70,16 +71,16 @@ def echo(update: Update, context):
 
     items = re.findall('^falta.+', message)
 
-    if len(items) > 0 :
+    if len(items) > 0:
         office_require.add_items(items[0])
         update.message.reply_text('Ok, agregados a la lista')
-        
+
     if message == 'qué falta?' or message == 'que falta?':
         update.message.reply_text('Voy a buscar')
         sleep(1)
         items = office_require.read_items()
         items_message = ''
-        if len(items)>0:
+        if len(items) > 0:
             update.message.reply_text('Encontré que falta')
             for item in items:
                 items_message += f'El {item["date"]}\n'
@@ -87,10 +88,10 @@ def echo(update: Update, context):
                     items_message += f'{i.strip()}\n'
                 items_message += '\n'
             update.message.reply_text(items_message)
-        else: 
+        else:
             update.message.reply_text('No hay nada en falta 👍')
 
-    if message == 'comprado': 
+    if message == 'comprado':
         update.message.reply_text('Ok, borro datos de la lista 👌')
         office_require.delete_items()
 
@@ -180,18 +181,18 @@ def export_files_r90(update, context):
     files = scan_files()
 
     month_names = {
-        '01':'Enero',
-        '02':'Febrero',
-        '03':'Marzo',
-        '04':'Abril',
-        '05':'Mayo',
-        '06':'Junio',
-        '07':'Julio',
-        '08':'Agosto',
-        '09':'Septiembre',
-        '10':'Octubre',
-        '11':'Noviembre',
-        '12':'Diciembre',
+        '01': 'Enero',
+        '02': 'Febrero',
+        '03': 'Marzo',
+        '04': 'Abril',
+        '05': 'Mayo',
+        '06': 'Junio',
+        '07': 'Julio',
+        '08': 'Agosto',
+        '09': 'Septiembre',
+        '10': 'Octubre',
+        '11': 'Noviembre',
+        '12': 'Diciembre',
     }
 
     if files:
@@ -206,7 +207,7 @@ def export_files_r90(update, context):
 
             if client_name.capitalize() in files_name:
                 if month in files_name:
-                    files_name += f'{name.replace(".txt", ".xls")}\n' 
+                    files_name += f'{name.replace(".txt", ".xls")}\n'
                 else:
                     files_name += f'{month}\n{name.replace(".txt", ".xls")}\n'
             else:
@@ -244,6 +245,21 @@ def run_download_ruc(update, context):
         unzipping_files()
 
     update.message.reply_text("Ruc descargados")
+
+
+def get_prices(update: Update, context):
+    control_url = 'https://nissei.com/py/controlador-rgb-sonoff-l2-c-para-cinta-led-smart'
+    echo_url = 'https://nissei.com/py/speaker-amazon-echo-dot-4ta-generacion'
+
+    echo_amazon = nissei_scrapy.get_product(control_url)
+    control_sonoff = nissei_scrapy.get_product(echo_url)
+
+    msg_echo = f"{echo_amazon['name']}\n{echo_amazon['stock']}\nPrecio:{echo_amazon['price']}"
+    msg_control = f"{control_sonoff['name']}\nPrecio:{control_sonoff['price']}\n{control_sonoff['stock']}"
+
+    update.message.reply_text(msg_echo)
+    update.message.reply_text(msg_control)
+
 
 # Iniciar al Menú Principal
 
@@ -335,7 +351,6 @@ def responseOption(update, context):
 #             chat_id=, text='Prueba')
 
 
-
 def main():
     """Inicia el bot con un TOKEN"""
     updater = Updater(
@@ -367,6 +382,7 @@ def main():
     dp.add_handler(CommandHandler('menu', menu))
     dp.add_handler(CommandHandler('export', export_files_r90))
     dp.add_handler(CommandHandler('downloadruc', run_download_ruc))
+    dp.add_handler(CommandHandler('nissei', get_prices))
 
     dp.add_handler(MessageHandler(Filters.text, echo))
 
