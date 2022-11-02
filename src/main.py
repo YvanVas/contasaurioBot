@@ -250,15 +250,15 @@ def run_download_ruc(update, context):
 def get_prices(update: Update, context):
     control_url = 'https://nissei.com/py/controlador-rgb-sonoff-l2-c-para-cinta-led-smart'
     echo_url = 'https://nissei.com/py/speaker-amazon-echo-dot-4ta-generacion'
+    lampara_url = 'https://nissei.com/py/lampara-led-xiaomi-mi-computer-monitor-light-bar-mjgjd01yl-5-w-negro'
 
-    echo_amazon = nissei_scrapy.get_product(control_url)
-    control_sonoff = nissei_scrapy.get_product(echo_url)
+    echo_amazon = nissei_scrapy.get_product(echo_url)
+    control_sonoff = nissei_scrapy.get_product(control_url)
+    lampara = nissei_scrapy.get_product(lampara_url)
 
-    msg_echo = f"{echo_amazon['name']}\n{echo_amazon['stock']}\nPrecio:{echo_amazon['price']}"
-    msg_control = f"{control_sonoff['name']}\nPrecio:{control_sonoff['price']}\n{control_sonoff['stock']}"
-
-    update.message.reply_text(msg_echo)
-    update.message.reply_text(msg_control)
+    update.message.reply_text(echo_amazon)
+    update.message.reply_text(control_sonoff)
+    update.message.reply_text(lampara)
 
 
 # Iniciar al Menú Principal
@@ -346,9 +346,9 @@ def responseOption(update, context):
             text="Ok. Enviame el nuevo nombre:")
 
 
-# def once(context:CallbackContext):
+# def saludo(context:CallbackContext):
 #     context.bot.send_message(
-#             chat_id=, text='Prueba')
+#             chat_id=, text='Buen día gente ya amaneció')
 
 
 def main():
@@ -358,9 +358,11 @@ def main():
 
     # job = updater.job_queue
 
-    # job.run_once(once, 20)
+    # job.run_daily(saludo, days=(0, 1, 2, 3, 4, 5, 6), time=datetime.time(hour=10, minute=33).replace(tzinfo=))
+
 
     dp = updater.dispatcher
+
 
     # Conversacion
     conv_handler = ConversationHandler(
