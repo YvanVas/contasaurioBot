@@ -207,11 +207,11 @@ def export_files_r90(update, context):
 
             if client_name.capitalize() in files_name:
                 if month in files_name:
-                    files_name += f'{name.replace(".txt", ".xls")}\n'
+                    files_name += f'{name}\n'
                 else:
-                    files_name += f'{month}\n{name.replace(".txt", ".xls")}\n'
+                    files_name += f'{month}\n{name}\n'
             else:
-                files_name += f'{client_name.capitalize()}:\n{month}\n{name.replace(".txt", ".xls")}\n'
+                files_name += f'{client_name.capitalize()}:\n{month}\n{name}\n'
 
         context.bot.send_message(
             chat_id=chat_id, text=f'{files_name} \n  Encontré estos archivos')
