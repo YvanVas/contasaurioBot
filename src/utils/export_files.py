@@ -28,19 +28,28 @@ def scan_files(file_extension='.txt') -> list:
 
         with os.scandir(folder) as folders:
 
-            for month_folder in folders:
+            for year_folder in folders:
 
-                if month_folder.is_file():
+                if year_folder.is_file():
 
-                    client_files.append(month_folder + month_folder.name)
+                    client_files.append(year_folder + year_folder.name)
                 else:
-                    sub = folder+month_folder.name+'/'
+                    month_folder = folder+year_folder.name+'/'
 
-                    with os.scandir(sub) as sub_month_folders:
+                    with os.scandir(month_folder) as month_folders:
 
-                        for file in sub_month_folders:
-                            if file.is_file() and file.name.endswith(file_extension):
-                                client_files.append(sub + file.name)
+                        for month in month_folders:
+                            if month.is_file() and month.name.endswith(file_extension):
+                                client_files.append(month_folder + month.name)
+                            elif month.is_dir():
+
+                                file_folder = month_folder+month.name
+
+                                with os.scandir(file_folder) as files_folder:
+                                    for file in files_folder:
+                                        if file.is_file() and file.name.endswith(file_extension):
+                                            client_files.append(
+                                                f'{month_folder}{month.name}/{file.name}')
 
     return client_files
 
@@ -98,7 +107,7 @@ def read_file(path: str) -> list:
 
                 if not line.strip():
                     continue
-                
+
                 document = format_line_text(line)
 
                 details_document = ''
@@ -128,3 +137,6 @@ def delete_file(path: str) -> None:
         os.remove(path)
     else:
         print("El archivo no existe!")
+
+
+print(scan_files())
