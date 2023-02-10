@@ -137,6 +137,3 @@ def delete_file(path: str) -> None:
         os.remove(path)
     else:
         print("El archivo no existe!")
-
-
-print(scan_files())
