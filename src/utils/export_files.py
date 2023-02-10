@@ -59,22 +59,20 @@ def xls_to_txt():
     files = scan_files('.xls')
 
     if files:
-
         for file in files:
 
             old_name = file
             new_name = file.replace('.xls', '.txt')
 
             if os.path.isfile(new_name):
-                print("El archivo ya se convirtió: ", new_name)
+                pass
             else:
                 # Rename the file
                 os.rename(old_name, new_name)
 
-        # print('Convirtiendo los archivos xls a txt...')
-        # print('\n')
+        return True
     else:
-        print('No hay archivos para convertir')
+        return None
 
 
 def format_line_text(text: str) -> list:
