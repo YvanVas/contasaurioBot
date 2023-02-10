@@ -200,18 +200,27 @@ def export_files_r90(update, context):
         files_name = ''
         for file in files:
             client_name = re.findall('/([a-z]+)/', file)[0]
-            month = month_names[re.findall('/([0-9]+)/', file)[0]]
+            month = month_names[re.findall('/([0-9]{2})/', file)[0]]
+            search_year = re.findall('/([0-9]{4})/', file)
+
+            if len(search_year) >= 1:
+                year = search_year[0]
+            else:
+                year = 'Sin año'
 
             file_name = re.findall('\w+.txt', file)
             name = file_name[0]
 
+            month_and_year = f'{month} - {year}'
+
             if client_name.capitalize() in files_name:
-                if month in files_name:
+                if month_and_year in files_name:
                     files_name += f'{name}\n'
                 else:
-                    files_name += f'{month}\n{name}\n'
+                    files_name += f'{month_and_year}\n{name}\n'
             else:
-                files_name += f'{client_name.capitalize()}:\n{month}\n{name}\n'
+                files_name += f'{client_name.capitalize()}:\n{month_and_year}\n{name}\n'
+
 
         context.bot.send_message(
             chat_id=chat_id, text=f'{files_name} \n  Encontré estos archivos')
@@ -360,9 +369,7 @@ def main():
 
     # job.run_daily(saludo, days=(0, 1, 2, 3, 4, 5, 6), time=datetime.time(hour=10, minute=33).replace(tzinfo=))
 
-
     dp = updater.dispatcher
-
 
     # Conversacion
     conv_handler = ConversationHandler(
