@@ -1,4 +1,4 @@
-from utils.download_ruc_files import URL, PATH, find_zip_url, scan_files, download_zips, unzipping_files
+from download_ruc_files import URL, PATH, find_zip_url, scan_files, download_zips, unzipping_files
 from unittest import TestCase
 import unittest
 
