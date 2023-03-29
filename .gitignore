@@ -3,3 +3,4 @@ config.py
 archives
 venv
 *.sh
+*.log
