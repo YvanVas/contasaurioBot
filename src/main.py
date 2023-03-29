@@ -11,7 +11,7 @@ from utils.search_identity import find_identity_data
 from utils import office_require
 from utils import nissei_scrapy
 from utils.messages_list import *
-
+from marangatu import marangatu
 
 # Iniciar Loggin
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -36,17 +36,18 @@ def help_command(update, context):
     """Lista de Funciones"""
     update.message.reply_text(
         """
-        Funciones para el control de los Clientes. 
-    /nuevocliente - agregar cliente 
-    /listaclientes - ver todos los clientes 
+        Funciones para el control de los Clientes.
+    /nuevocliente - agregar cliente
+    /listaclientes - ver todos los clientes
 
-    Configuración de Clientes 
-    /agregartimbrado - agregar un nuevo timbrado 
-    /recepciondocumentos - resive los documentos 
-    /retirodocumentos - nose 
-    /colorcarpeta - agregar el color 
-    /export - exportar archivos de la R-90 
+    Configuración de Clientes
+    /agregartimbrado - agregar un nuevo timbrado
+    /recepciondocumentos - resive los documentos
+    /retirodocumentos - nose
+    /colorcarpeta - agregar el color
+    /export - exportar archivos de la R-90
     /buscarci - Busca el n° de documente en el RUC
+    /
 
     Falta más funciones, pero aprendo rápido."""
     )
@@ -170,7 +171,7 @@ def done(update: Update, context) -> int:
     return ConversationHandler.END
 
 
-def export_files_r90(update, context):
+def export_files_r90(update: Update, context):
 
     chat_id = update.message.chat_id
 
@@ -221,7 +222,6 @@ def export_files_r90(update, context):
             else:
                 files_name += f'{client_name.capitalize()}:\n{month_and_year}\n{name}\n'
 
-
         context.bot.send_message(
             chat_id=chat_id, text=f'{files_name} \n  Encontré estos archivos')
 
@@ -256,19 +256,40 @@ def run_download_ruc(update, context):
     update.message.reply_text("Ruc descargados")
 
 
-def get_prices(update: Update, context):
-    control_url = 'https://nissei.com/py/controlador-rgb-sonoff-l2-c-para-cinta-led-smart'
-    echo_url = 'https://nissei.com/py/speaker-amazon-echo-dot-4ta-generacion'
-    lampara_url = 'https://nissei.com/py/lampara-led-xiaomi-mi-computer-monitor-light-bar-mjgjd01yl-5-w-negro'
+# Anulados
+def export_anulados(update: Update, context):
+    chat_id = update.message.chat_id
 
-    echo_amazon = nissei_scrapy.get_product(echo_url)
-    control_sonoff = nissei_scrapy.get_product(control_url)
-    lampara = nissei_scrapy.get_product(lampara_url)
+    context.bot.send_message(
+        chat_id=chat_id, text='Buscando facturas anuladas... 🔍')
 
-    update.message.reply_text(echo_amazon)
-    update.message.reply_text(control_sonoff)
-    update.message.reply_text(lampara)
+    # Separate anulados data and write to new txt file
+    files_path = marangatu.document_util.separate_anulados()
 
+    # Init anulados data list
+    anulados_data = []
+
+    # Get all anulados data in a list
+    for file_path in files_path:
+        anulados_data = marangatu.document_util.get_anulados_data(
+            path=file_path)
+        anulados_data.append(anulados_data)
+
+    # Init total messagge response
+    messagge_anulados = ''
+
+    for data in anulados_data:
+        contribuyente_name = data['contribuyente'].capitalize()
+        anulado_data = f"{data['timbrado']} | {data['date']} | {data['document_number']['total_number']}"
+
+        if contribuyente_name in messagge_anulados:
+            messagge_anulados += f'{anulados_data}\n'
+        else:
+            messagge_anulados += f'{contribuyente_name}:\n{anulado_data}\n'
+
+    # Send all anulados to chat
+    context.bot.send_message(
+        chat_id=chat_id, text=f'{messagge_anulados} \n  Encontré estos anulados')
 
 # Iniciar al Menú Principal
 
@@ -390,8 +411,8 @@ def main():
 
     dp.add_handler(CommandHandler('menu', menu))
     dp.add_handler(CommandHandler('export', export_files_r90))
+    dp.add_handler(CommandHandler('anulados', export_anulados))
     dp.add_handler(CommandHandler('downloadruc', run_download_ruc))
-    dp.add_handler(CommandHandler('nissei', get_prices))
 
     dp.add_handler(MessageHandler(Filters.text, echo))
 
