@@ -3,6 +3,9 @@ import os
 from zipfile import ZipFile, ZIP_DEFLATED
 
 
+PATH_R90 = 'Z:/r90'
+
+
 def to_zip(path: str) -> zip:
 
     jungle_zip = ZipFile(path.replace('.txt', '.zip'), 'w')
@@ -15,8 +18,7 @@ def to_zip(path: str) -> zip:
     jungle_zip.close()
 
 
-def scan_files(file_extension='.txt') -> list:
-    raiz_dir = 'Z:/r90'
+def scan_files(file_extension: str = '.txt', raiz_dir: str = PATH_R90) -> list:
 
     with os.scandir(raiz_dir) as ficheros:
 
