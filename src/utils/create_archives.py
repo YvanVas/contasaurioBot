@@ -1,9 +1,11 @@
 import os
 
+PATH_DIR = 'Z:/r90/'
+
 
 def create_directory(dir_name: str, month=None, start_month=None, end_month=None):
 
-    dir = 'Z:/r90/'+dir_name
+    dir = PATH_DIR+dir_name
 
     if os.path.exists(dir):
         print('La carpeta ya existe!')
@@ -27,7 +29,7 @@ def create_directory(dir_name: str, month=None, start_month=None, end_month=None
 
 def create_subdir(dir_name, start_month=None, end_month=None):
 
-    dir = 'Z:/r90/'+dir_name
+    dir = PATH_DIR+dir_name
 
     subs_dir = ''
     if start_month and end_month is not None:
