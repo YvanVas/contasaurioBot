@@ -14,7 +14,7 @@ metadata = MetaData()
 Base = declarative_base()
 
 
-class Timbrados(Base):
+class TimbradosModel(Base):
     __tablename__ = 'timbrados'
 
     id = Column(Integer, primary_key=True)
@@ -25,7 +25,7 @@ class Timbrados(Base):
     end_date = Column(DateTime, nullable=False)
 
 
-class Users(Base):
+class UsersModel(Base):
     __tablename__ = 'users'
 
     id = Column(Integer, primary_key=True)

@@ -1,5 +1,5 @@
 from dataBase.schemas.timbrados_schema import TimbradoSchema
-from dataBase.config.config_db import Timbrados
+from dataBase.config.config_db import TimbradosModel
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import insert
@@ -11,7 +11,7 @@ class TimbradosRepository():
 
     def add_timbrado(self, timbrado_data: TimbradoSchema) -> None:
         try:
-            timbrado_db = Timbrados(**timbrado_data.dict())
+            timbrado_db = TimbradosModel(**timbrado_data.dict())
             self.session.add(timbrado_db)
             self.session.commit()
             return True
