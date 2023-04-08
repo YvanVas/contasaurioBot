@@ -4,4 +4,3 @@ archives
 venv
 *.sh
 *.log
-*.db
