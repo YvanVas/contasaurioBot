@@ -4,7 +4,7 @@ import datetime
 from random import randint
 import re
 from time import sleep
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update, ParseMode
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackQueryHandler, ContextTypes, ConversationHandler, filters, CallbackContext
 from download_ruc_files import download_zips, unzipping_files, scan_files
 from utils.export_files import xls_to_txt, scan_files, read_file, write_file, to_zip, delete_file
@@ -146,15 +146,16 @@ def echo(update: Update, context):
 
 
 def search_identity(update: Update, context) -> int:
-
-    update.message.reply_text(
-        'Mandame el número de documento: \n\n envia "Listo" cuando termines las consultas.')
+    user = update.effective_user
+    msg = 'Envía `Listo` cuando termines las consultas.\n\nNúmero de documento:'
+    context.bot.send_message(
+        chat_id=user.id, text=msg, parse_mode=ParseMode.MARKDOWN)
 
     return IDENTITY
 
 
 def identity(update: Update, context):
-    user = update.message.from_user
+    user = update.effective_user
     # Responde con el mensaje anterior
     # update.message.reply_text(update.message.text)
 
@@ -162,7 +163,8 @@ def identity(update: Update, context):
 
     message_person_data = find_identity_data(identity_number)
 
-    update.message.reply_text(message_person_data)
+    context.bot.send_message(
+        chat_id=user.id, text=message_person_data, parse_mode=ParseMode.MARKDOWN)
 
 
 def done(update: Update, context) -> int:
@@ -296,90 +298,6 @@ def export_anulados(update: Update, context):
     context.bot.send_message(
         chat_id=chat_id, text=f'{messagge_anulados} \n  Encontré estos anulados')
 
-# Iniciar al Menú Principal
-
-
-def menu(bot, update):
-    bot.message.reply_text(mainMenuMessage(),
-                           reply_markup=mainMenuKeyboard())
-
-
-# Menus del bot
-def mainMenu(bot, update):
-    bot.callback_query.message.edit_text(mainMenuMessage(),
-                                         reply_markup=mainMenuKeyboard())
-
-
-def clientConfigMenu(bot, update):
-    bot.callback_query.message.edit_text(clientConfigMessage(),
-                                         reply_markup=clientConfigKeyboard())
-
-
-def second_menu(bot, update):
-    bot.callback_query.message.edit_text(second_menu_message(),
-                                         reply_markup=second_menu_keyboard())
-
-
-def clientConfigSubmenu(bot, update):
-    pass
-
-
-def second_submenu(bot, update):
-    pass
-
-
-def error(update, context):
-    print(f'Update {update} caused error {context.error}')
-
-
-# Keyboardas - Menu de menues
-def mainMenuKeyboard():
-    keyboard = [[InlineKeyboardButton('Configuración de Clientes', callback_data='clientConfigMenu')],
-                [InlineKeyboardButton('Eliminar Cliente', callback_data='m2')]]
-    return InlineKeyboardMarkup(keyboard)
-
-
-def clientConfigKeyboard():
-    keyboard = [[InlineKeyboardButton('Nombre', callback_data='clientName')],
-                [InlineKeyboardButton(
-                    'Timbrado', callback_data='clientTimbrado')],
-                [InlineKeyboardButton(
-                    'Color de la Carpeta', callback_data='clientColorFolder')],
-                [InlineKeyboardButton('Atras', callback_data='main')]]
-    # escuchando la eleccion
-    return InlineKeyboardMarkup(keyboard)
-
-
-def second_menu_keyboard():
-    keyboard = [[InlineKeyboardButton('Submenu 2-1', callback_data='m2_1')],
-                [InlineKeyboardButton('Submenu 2-2', callback_data='m2_2')],
-                [InlineKeyboardButton('Main menu', callback_data='main')]]
-    return InlineKeyboardMarkup(keyboard)
-
-
-# Mensajes de los menus
-def mainMenuMessage():
-    return 'Opciones:'
-
-
-def clientConfigMessage():
-    return 'Editar Clientes:'
-
-
-def second_menu_message():
-    return 'Choose the submenu in second menu:'
-
-# TODO: hacer que direccione a su duncion correspondiente /cambiarNombre, y espere una respuesta y luego ejecute el cambio
-
-
-def responseOption(update, context):
-    query = update.callback_query
-    # CallbackQueries necesita una respuesta para seguir
-    query.answer()
-    if query.data == 'clientName':
-        query.edit_message_text(
-            text="Ok. Enviame el nuevo nombre:")
-
 
 # def saludo(context:CallbackContext):
 #     context.bot.send_message(
@@ -387,8 +305,15 @@ def responseOption(update, context):
 
 
 def wait_timbrado(update: Update, context):
-    update.message.reply_text(
-        'Enviame el numero de timbrado de esta forma: nombrecliente, 12345678, 001-001-0000000, 08/04/2023')
+    user = update.effective_user
+
+    msg = 'Enviame los datos del timbrado separados por "*,*" de esta forma:\n\nCliente, N° timbrado, expedición, N° factura desde, hasta, Fecha de vencimiento'
+    context.bot.send_message(
+        chat_id=user.id, text=msg, parse_mode=ParseMode.MARKDOWN)
+
+    msg = 'Ejemplo:\n\n`Juan, 14152275, 001-001, 100, 300, 31/12/2023`'
+    context.bot.send_message(
+        chat_id=user.id, text=msg, parse_mode=ParseMode.MARKDOWN)
 
     return TIMBRADO
 
@@ -396,19 +321,23 @@ def wait_timbrado(update: Update, context):
 def timbrado(update: Update, context):
     timbrado_data_text = update.message.text.split(',')
     timbrado_data_text = [data.strip() for data in timbrado_data_text]
-    print(timbrado_data_text)
+
+    inicio = timbrado_data_text[2]+'-'+timbrado_data_text[3]
+    fin = timbrado_data_text[2]+'-'+timbrado_data_text[4]
+
     timbrado_data = TimbradoSchema(
         client_name=timbrado_data_text[0],
         timbrado_number=timbrado_data_text[1],
-        numero_inicio='1',
-        numero_fin='500',
-        end_date=datetime.datetime.strptime(timbrado_data_text[3], '%d/%m/%Y')
+        numero_inicio=inicio,
+        numero_fin=fin,
+        end_date=datetime.datetime.strptime(
+            timbrado_data_text[5], '%d/%m/%Y')
     )
     insert_db = TimbradosRepository(session).add_timbrado(timbrado_data)
     if insert_db:
         update.message.reply_text('Timbrado agregado')
     else:
-        update.message.reply_text('Error')
+        update.message.reply_text('No pude agregarlo')
 
     return ConversationHandler.END
 
@@ -436,7 +365,7 @@ def main():
     )
 
     conv_handler_timbrado = ConversationHandler(
-        entry_points=[CommandHandler("timbrado", wait_timbrado)],
+        entry_points=[CommandHandler("agregartimbrado", wait_timbrado)],
         states={
             TIMBRADO: [
                 MessageHandler(Filters.regex("\w"), timbrado)
@@ -451,32 +380,11 @@ def main():
     # los diferentes comandos para bot
     dp.add_handler(CommandHandler('start', start))
     dp.add_handler(CommandHandler('ayuda', help_command))
-
-    dp.add_handler(CommandHandler('menu', menu))
     dp.add_handler(CommandHandler('export', export_files_r90))
     dp.add_handler(CommandHandler('anulados', export_anulados))
     dp.add_handler(CommandHandler('downloadruc', run_download_ruc))
 
     dp.add_handler(MessageHandler(Filters.text, echo))
-
-    # Handlers del Menu
-    updater.dispatcher.add_handler(
-        CallbackQueryHandler(mainMenu, pattern='main'))
-    updater.dispatcher.add_handler(CallbackQueryHandler(
-        clientConfigMenu, pattern='clientConfigMenu'))
-    updater.dispatcher.add_handler(
-        CallbackQueryHandler(second_menu, pattern='m2'))
-    # updater.dispatcher.add_handler(CallbackQueryHandler(clientConfigSubmenu, pattern='clientName'))
-    # updater.dispatcher.add_handler(CallbackQueryHandler(clientConfigSubmenu, pattern='clientTimbrado'))
-    # updater.dispatcher.add_handler(CallbackQueryHandler(clientConfigSubmenu, pattern='clientColorFolder'))
-
-    updater.dispatcher.add_handler(CallbackQueryHandler(responseOption))
-
-    updater.dispatcher.add_handler(
-        CallbackQueryHandler(second_submenu, pattern='m2_1'))
-    updater.dispatcher.add_handler(
-        CallbackQueryHandler(second_submenu, pattern='m2_2'))
-    updater.dispatcher.add_error_handler(error)
 
     # Start the Bot
     updater.start_polling(drop_pending_updates=True)
