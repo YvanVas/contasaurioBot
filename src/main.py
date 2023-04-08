@@ -1,5 +1,6 @@
 import logging
 import os
+import datetime
 from random import randint
 import re
 from time import sleep
@@ -8,6 +9,9 @@ from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, Callb
 from download_ruc_files import download_zips, unzipping_files, scan_files
 from utils.export_files import xls_to_txt, scan_files, read_file, write_file, to_zip, delete_file
 from utils.search_identity import find_identity_data
+from dataBase.config.config_db import session
+from dataBase.repositories.timbrados_repository import TimbradosRepository
+from dataBase.schemas.timbrados_schema import TimbradoSchema
 from utils import office_require
 from utils import nissei_scrapy
 from utils.messages_list import *
@@ -23,12 +27,13 @@ logger = logging.getLogger(__name__)
 
 TOKEN = os.environ['TOKEN']
 IDENTITY = 1
+TIMBRADO = 1
 
 
 def start(update, context):
     """Mensaje de Inicio"""
     update.message.reply_text(
-        'Que tengo que hacer? vea /ayuda para ver la lsita de mis funciones.')
+        'Hola!')
 
 
 # funcion para explicar los comandos, lista de opciones
@@ -381,6 +386,33 @@ def responseOption(update, context):
 #             chat_id=, text='Buen día gente ya amaneció')
 
 
+def wait_timbrado(update: Update, context):
+    update.message.reply_text(
+        'Enviame el numero de timbrado de esta forma: nombrecliente, 12345678, 001-001-0000000, 08/04/2023')
+
+    return TIMBRADO
+
+
+def timbrado(update: Update, context):
+    timbrado_data_text = update.message.text.split(',')
+    timbrado_data_text = [data.strip() for data in timbrado_data_text]
+    print(timbrado_data_text)
+    timbrado_data = TimbradoSchema(
+        client_name=timbrado_data_text[0],
+        timbrado_number=timbrado_data_text[1],
+        numero_inicio='1',
+        numero_fin='500',
+        end_date=datetime.datetime.strptime(timbrado_data_text[3], '%d/%m/%Y')
+    )
+    insert_db = TimbradosRepository(session).add_timbrado(timbrado_data)
+    if insert_db:
+        update.message.reply_text('Timbrado agregado')
+    else:
+        update.message.reply_text('Error')
+
+    return ConversationHandler.END
+
+
 def main():
     """Inicia el bot con un TOKEN"""
     updater = Updater(
@@ -403,7 +435,18 @@ def main():
         fallbacks=[MessageHandler(Filters.regex("^Listo$"), done)],
     )
 
+    conv_handler_timbrado = ConversationHandler(
+        entry_points=[CommandHandler("timbrado", wait_timbrado)],
+        states={
+            TIMBRADO: [
+                MessageHandler(Filters.regex("\w"), timbrado)
+            ],
+        },
+        fallbacks=[MessageHandler(Filters.regex("^Listo$"), done)],
+    )
+
     dp.add_handler(conv_handler)
+    dp.add_handler(conv_handler_timbrado)
 
     # los diferentes comandos para bot
     dp.add_handler(CommandHandler('start', start))
