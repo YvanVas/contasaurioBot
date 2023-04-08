@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date
 from pydantic import BaseModel
 
 
@@ -7,4 +7,4 @@ class TimbradoSchema(BaseModel):
     client_name: str
     numero_inicio: str
     numero_fin: str
-    end_date: datetime
+    end_date: date
