@@ -1,7 +1,6 @@
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, ForeignKey, DateTime, Date, Float
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
-import datetime
 import os
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -22,7 +21,7 @@ class TimbradosModel(Base):
     client_name = Column(String(255), nullable=False)
     numero_inicio = Column(String(255), nullable=False)
     numero_fin = Column(String(255), nullable=False)
-    end_date = Column(DateTime, nullable=False)
+    end_date = Column(Date, nullable=False)
 
 
 class UsersModel(Base):
@@ -40,4 +39,4 @@ class UsersModel(Base):
 Session = sessionmaker(bind=engine)
 session = Session()
 
-# Base.metadata.create_all(bind=engine)
+#Base.metadata.create_all(bind=engine)
