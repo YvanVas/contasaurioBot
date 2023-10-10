@@ -10,7 +10,7 @@ from utils.export_files import delete_file
 
 PATH = 'archives/rucs'
 SET_URL = 'https://www.set.gov.py'
-URL = 'https://www.set.gov.py/portal/PARAGUAY-SET/InformesPeriodicos?folder-id=repository:collaboration:/sites/PARAGUAY-SET/categories/SET/Informes%20Periodicos/listado-de-ruc-con-sus-equivalencias'
+URL = 'https://www.set.gov.py/web/portal-institucional/listado-de-ruc-con-sus-equivalencias'
 
 # Para soporte de SSL
 requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS += 'HIGH:!DH:!aNULL'
@@ -57,22 +57,10 @@ def find_zip_url(url: str) -> list:
 
     soup = BeautifulSoup(page_ruc.content, 'html.parser')
 
-    links_ruc_page = soup.find_all('div', class_='heading')
+    links_ruc_page = soup.find_all('div', class_='item__links')
 
-    links_page_zip = [
+    list_url_zip = [
         f'{SET_URL}{page.find("a").get("href")}' for page in links_ruc_page]
-
-    list_url_zip = []
-
-    for link in links_page_zip:
-
-        page_download_zip = requests.get(link)
-        soup = BeautifulSoup(page_download_zip.content, 'html.parser')
-
-        url_zip = soup.find('a', class_='btn btn-primary').get('href')
-        url_zip = f'{SET_URL}{url_zip}'
-
-        list_url_zip.append(url_zip)
 
     return list_url_zip
 
@@ -88,24 +76,31 @@ def read_file(path: str) -> list:
             if not line.strip():
                 continue
 
+            # 10000|APELLIDO, NOMBRES|DV|XXXXXX|ESTADO|
             data = line.split('|')
 
             fullname = data[1]
+            names = ''
+            surnames = ''
 
             if ',' in fullname:
 
-                # -> (lastname, name)
+                # -> (surnames, names)
                 list_fullname = fullname.split(',')
-
-                # -> 'name, lastname'
-                fullname = f'{list_fullname[1].strip()}, {list_fullname[0]}'
+                names = list_fullname[1].strip()
+                surnames = list_fullname[0].strip()
+                # -> 'names, surnames'
+                fullname = f'{names}, {surnames}'
 
             contribuyentes.append(
                 {
                     'ci': data[0],
+                    'names': names,
+                    'surnames': surnames,
                     'fullname': fullname,
                     'dv': data[2],
                     'ruc': f'{data[0]}-{data[2]}',
+                    'status': data[4],
                 }
             )
 

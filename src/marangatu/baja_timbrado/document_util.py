@@ -48,7 +48,7 @@ def document_number_format(number: str) -> dict:
     """
     formatted_document_number = re.split(
         '([0-9]{3})([0-9]{3})([0-9]{7})', number)[1:-1]
-
+    print(formatted_document_number)
     document_number = {
         'establecimiento': formatted_document_number[0],
         'punto_expedicion': formatted_document_number[1],
@@ -85,48 +85,53 @@ def separate_anulados(path: str = ANULADOS_PATH) -> list:
         anulados = []
         # Init anulados path
         separated_anulados_path = []
-        # Init cont
-        cont = 0
 
         # Recorrer los path de los anulados
         for anulado_file_path in anulados_files_path:
+            # Init head line position reference
+            head_line_position = 0
+            # Init line position cont
+            line_position_cont = 0
+
             # Open txt file in read mode
             with open(file=anulado_file_path, mode='r', errors='ignore') as file:
 
                 for line in file:
                     # Ignore the first line (head)
-                    if cont == 0:
-                        cont += 1
+                    if line_position_cont == head_line_position:
+                        line_position_cont += 1
                         continue
 
                     # Clean line data
                     document_data = clean_line_data(line_data=line)
-
+                    print(document_data)
                     # Extract timbrado, date, document_number, ruc, client value with position
                     document_data = {
                         'timbrado':  remove_start_ceros(document_data[1]),
-                        'date': document_data[4],
-                        'document_number': document_number_format(document_data[5]),
-                        'client_ruc': remove_start_ceros(document_data[6]),
-                        'client_name': document_data[7],
+                        'date': document_data[3],
+                        'document_number': document_number_format(document_data[4]),
+                        'client_ruc': remove_start_ceros(document_data[5]),
+                        'client_name': document_data[6],
                     }
 
                     # Filter ANULADOS
                     if document_data['client_ruc'] == RUC_ANULADO:
                         # Add data to anulados list
                         anulados.append(document_data)
-                        separated_anulados_path.append(
-                            anulado_file_path.replace('.TXT', '.txt'))
 
-                    cont += 1
+                    # Add one line more
+                    line_position_cont += 1
 
             if len(anulados) > 0:
                 write_file(anulados=anulados, path=anulado_file_path)
                 rename_file(file_path=anulado_file_path)
+                separated_anulados_path.append(
+                    anulado_file_path.replace('.TXT', '.txt'))
             else:
                 export_files.delete_file(path=anulado_file_path)
+
         return separated_anulados_path
-    return anulados_files_path
+    return None
 
 
 def write_file(anulados: list, path='tratado.txt') -> None:
@@ -149,7 +154,7 @@ def rename_file(file_path: str):
 
 def get_anulados_data(path: str) -> list:
     anulados_data = []
-    contribuyente_name = re.findall('/([a-z]+)/', path)[0]
+    contribuyente_name = re.findall('[a-z]+/([a-z]+)/[0-9]+', path)[0]
     with open(file=path, mode='r', errors='ignore') as file:
         for line in file:
 

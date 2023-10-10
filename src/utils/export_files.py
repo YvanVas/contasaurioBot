@@ -33,7 +33,6 @@ def scan_files(file_extension: str = '.txt', raiz_dir: str = PATH_R90) -> list:
             for year_folder in folders:
 
                 if year_folder.is_file():
-
                     client_files.append(year_folder + year_folder.name)
                 else:
                     month_folder = folder+year_folder.name+'/'

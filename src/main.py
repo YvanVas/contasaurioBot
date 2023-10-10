@@ -1,4 +1,7 @@
 import logging
+import random
+import pandas as pd
+import locale
 import os
 import datetime
 from random import randint
@@ -13,9 +16,10 @@ from dataBase.config.config_db import session
 from dataBase.repositories.timbrados_repository import TimbradosRepository
 from dataBase.schemas.timbrados_schema import TimbradoSchema
 from utils import office_require
-from utils import nissei_scrapy
+from chats.chatGPT.chatGPT_chat import bot_response
 from utils.messages_list import *
 from marangatu import marangatu
+from utils.html_convert import to_html
 
 # Iniciar Loggin
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -26,6 +30,7 @@ logger = logging.getLogger(__name__)
 
 
 TOKEN = os.environ['TOKEN']
+GROUP_ID = os.environ['GROUP_ID']
 IDENTITY = 1
 TIMBRADO = 1
 
@@ -106,19 +111,28 @@ def echo(update: Update, context):
         update.message.reply_text(message)
 
     elif message in cumplidos:
-        message = 'Claro'
-        update.message.reply_text(message)
+        username = user.first_name
+        response = message = bot_response(
+            prompt=f'{username}: {message}', temperature=0.9
+        )
+        update.message.reply_text(response)
 
     elif message in regaños:
         message = reply_regaños[msjAleatorio(reply_regaños)]
         update.message.reply_text(message)
 
-    elif message in saludos:
-        message = reply_saludos[msjAleatorio(reply_saludos)]
-        update.message.reply_text(message)
+    elif 'hola' in message:
+        username = user.first_name
+        # message = reply_saludos[msjAleatorio(reply_saludos)]
+        # update.message.reply_text(message)
+        response = message = bot_response(
+            prompt=f'{username}: {message}', temperature=0.9
+        )
+        update.message.reply_text(response)
 
     elif message in nombres:
-        update.message.reply_text('Si?')
+        respuestas = ['Si?', '🫡', 'Soy yo', '👀', 'Qué paso wey?', '😶‍🌫️']
+        update.message.reply_text(respuestas[msjAleatorio(respuestas)])
 
     elif message == 'benitooo':
         update.message.reply_text('QUEE!!!')
@@ -136,6 +150,10 @@ def echo(update: Update, context):
         message = reply_despedidas[msjAleatorio(reply_despedidas)]
         update.message.reply_text(message)
 
+    elif message in saludos:
+        message = reply_saludos[msjAleatorio(reply_saludos)]
+        update.message.reply_text(message)
+
     if 'jaja' in message:
         context.bot.send_message(chat_id=chat_id, text=message.capitalize())
 
@@ -148,8 +166,9 @@ def echo(update: Update, context):
 def search_identity(update: Update, context) -> int:
     user = update.effective_user
     msg = 'Envía `Listo` cuando termines las consultas.\n\nNúmero de documento:'
-    context.bot.send_message(
-        chat_id=user.id, text=msg, parse_mode=ParseMode.MARKDOWN)
+    # context.bot.send_message(
+    #     chat_id=user.id, text=msg, parse_mode=ParseMode.MARKDOWN)
+    update.message.reply_text(msg, parse_mode=ParseMode.MARKDOWN)
 
     return IDENTITY
 
@@ -162,9 +181,11 @@ def identity(update: Update, context):
     identity_number = update.message.text
 
     message_person_data = find_identity_data(identity_number)
+    update.message.reply_text(
+        message_person_data, parse_mode=ParseMode.MARKDOWN)
 
-    context.bot.send_message(
-        chat_id=user.id, text=message_person_data, parse_mode=ParseMode.MARKDOWN)
+    # context.bot.send_message(
+    #     chat_id=user.id, text=message_person_data, parse_mode=ParseMode.MARKDOWN)
 
 
 def done(update: Update, context) -> int:
@@ -182,7 +203,11 @@ def export_files_r90(update: Update, context):
 
     chat_id = update.message.chat_id
 
-    context.bot.send_message(chat_id=chat_id, text='Buscando archivos... 🔍')
+    msg_buscar_list = ['Buscando archivos... 🔍',
+                       'Buscando voy 🔍, yo por las carpetas... 🎶🎶']
+    msg_buscar = random.choice(msg_buscar_list)
+
+    context.bot.send_message(chat_id=chat_id, text=msg_buscar)
 
     xls_to_txt()
 
@@ -271,37 +296,46 @@ def export_anulados(update: Update, context):
         chat_id=chat_id, text='Buscando facturas anuladas... 🔍')
 
     # Separate anulados data and write to new txt file
-    files_path = marangatu.document_util.separate_anulados()
+    anulados_files_path = marangatu.document_util.separate_anulados()
+    anulados_files_path = scan_files(
+        file_extension='.txt', raiz_dir='Z:/anulados')
+    print(anulados_files_path)
+    # if anulados_files_path is not None:
 
-    # Init anulados data list
-    anulados_data = []
+    #     # Init total messagge response
+    #     messagge_anulados = ''
+    #     cont = 0
 
-    # Get all anulados data in a list
-    for file_path in files_path:
-        anulados_data = marangatu.document_util.get_anulados_data(
-            path=file_path)
-        anulados_data.append(anulados_data)
+    #     print(len(anulados_files_path))
 
-    # Init total messagge response
-    messagge_anulados = ''
+    #     # Get all anulados data in a list
+    #     for file_path in anulados_files_path:
+    #         anulados_data: list = marangatu.document_util.get_anulados_data(
+    #             file_path)
 
-    for data in anulados_data:
-        contribuyente_name = data['contribuyente'].capitalize()
-        anulado_data = f"{data['timbrado']} | {data['date']} | {data['document_number']['total_number']}"
+    #         cont += 1
 
-        if contribuyente_name in messagge_anulados:
-            messagge_anulados += f'{anulados_data}\n'
-        else:
-            messagge_anulados += f'{contribuyente_name}:\n{anulado_data}\n'
+    #         for data in anulados_data:
+    #             data: dict
 
-    # Send all anulados to chat
-    context.bot.send_message(
-        chat_id=chat_id, text=f'{messagge_anulados} \n  Encontré estos anulados')
+    #             contribuyente_name = data['contribuyente'].capitalize()
+    #             anulado_oneline_data = f"{data['timbrado']} | {data['date']} | {data['document_number']['total_number']}"
 
+    #             print(anulado_oneline_data)
 
-# def saludo(context:CallbackContext):
-#     context.bot.send_message(
-#             chat_id=, text='Buen día gente ya amaneció')
+    #             if contribuyente_name in messagge_anulados:
+    #                 messagge_anulados += f'{anulado_oneline_data}\n'
+    #             else:
+    #                 messagge_anulados += f'{contribuyente_name}:\n{anulado_oneline_data}\n'
+
+    #     print(cont)
+
+    #     # Send all anulados to chat
+    #     context.bot.send_message(
+    #         chat_id=chat_id, text=f'{messagge_anulados} \n  Encontré estos anulados')
+    # else:
+    #     context.bot.send_message(
+    #         chat_id=chat_id, text=f'No encontré anulados')
 
 
 def wait_timbrado(update: Update, context):
@@ -337,9 +371,85 @@ def timbrado(update: Update, context):
     if insert_db:
         update.message.reply_text('Timbrado agregado')
     else:
-        update.message.reply_text('No pude agregarlo')
+        update.message.reply_text('No pude agregarlo, intenta de nuevo')
 
     return ConversationHandler.END
+
+
+def saludo(context: CallbackContext) -> None:
+    fecha_actual = datetime.date.today()
+    day = fecha_actual.strftime('%A')
+    hour = datetime.datetime.now().hour
+    minute = datetime.datetime.now().min
+    date = datetime.datetime.now().date()
+    if hour >= 6 and hour <= 12:
+
+        message = bot_response(
+            prompt=f'Te encendieron: {date}, {day} a las: {hour}:{minute}. Te encuentras en el grupo Contasaurios con los demas miembros de la empresa, no te presentes ya te conocen. Segun la hora que te encendieron Sí es menos de la 8:00hs quejate y si te encendieron despues de las 9:00hs haz un comentario de que te despertaste tarde. Saluda a todos agrega un comentario random.', temperature=0.8)
+        context.bot.send_message(
+            chat_id=GROUP_ID, text=message)
+
+
+def search_timbrados_to_expire(context: CallbackContext) -> None:
+    date_now = datetime.date.today()
+    current_year = date_now.year
+    current_month = date_now.month
+
+    nex_month = current_month + 1
+    next_year = current_year + 1
+
+    # Timbrados to expire current month
+    timbrados_to_expire_current_month = TimbradosRepository(
+        session).get_timbrado_by_date(month=current_month, year=current_year)
+
+    # Timbrados to expire next month
+    timbrados_to_expire_next_month = TimbradosRepository(
+        session).get_timbrado_by_date(month=nex_month, year=current_year)
+
+    context.bot.send_message(
+        chat_id=GROUP_ID, text='Buen día, me quedé dormido 🥴')
+
+    if len(timbrados_to_expire_current_month) > 0:
+        timbrados_information = [
+            f'Contribuyente: `{timbrado.client_name}`\nTimbrado: `{timbrado.timbrado_number}`\nN° Ini: `{timbrado.numero_inicio}`\nN° Fin: `{timbrado.numero_fin}`\nVencimiento: `{timbrado.end_date.strftime("%d/%m/%Y")}`'
+            for timbrado in timbrados_to_expire_current_month
+        ]
+        message_timbrados_expire_current = '*Timbrados a vencer este mes*\n\n' + \
+            '\n'.join(timbrados_information)
+        context.bot.send_message(
+            chat_id=GROUP_ID, text=message_timbrados_expire_current, parse_mode=ParseMode.MARKDOWN)
+
+    if len(timbrados_to_expire_next_month) > 0:
+        timbrados_information_next = [
+            f'Contribuyente: `{timbrado.client_name}`\nTimbrado: `{timbrado.timbrado_number}`\nN° Ini: `{timbrado.numero_inicio}`\nN° Fin: `{timbrado.numero_fin}`\nVencimiento: `{timbrado.end_date.strftime("%d/%m/%Y")}`'
+            for timbrado in timbrados_to_expire_next_month
+        ]
+        message_timbrados_expire_next = '*Timbrados el siguiente mes*\n\n' + \
+            '\n'.join(timbrados_information_next)
+        context.bot.send_message(
+            chat_id=GROUP_ID, text=message_timbrados_expire_next, parse_mode=ParseMode.MARKDOWN)
+
+
+def file_manager(update: Update, context: CallbackContext) -> None:
+    # file path
+    basedir = os.path.abspath(os.path.dirname(__file__))
+    dir = basedir + "\\archives\\facturas_electronicas"
+
+    # Download file
+    file = context.bot.get_file(update.message.document.file_id)
+    file_download = file.download()
+    print(f'se descargo el archivo: {file_download}')
+
+    # Format file
+    path_html = to_html(path_xlsx=file_download)
+
+    chat_id = update.message.chat_id
+    document = open(path_html, 'rb')
+    context.bot.send_document(chat_id, document)
+    document.close()
+
+    os.remove(path=file_download)
+    os.remove(path=path_html)
 
 
 def main():
@@ -347,9 +457,16 @@ def main():
     updater = Updater(
         TOKEN, use_context=True)
 
-    # job = updater.job_queue
+    # Tiempo local, español
+    locale.setlocale(locale.LC_ALL, 'es_ES.utf8')
 
-    # job.run_daily(saludo, days=(0, 1, 2, 3, 4, 5, 6), time=datetime.time(hour=10, minute=33).replace(tzinfo=))
+    # obtener el job_queue del updater
+    job = updater.job_queue
+
+    # agregar la tarea programada al job_queue
+    job.run_once(search_timbrados_to_expire, 1)
+
+    #jobs = job.run_custom()
 
     dp = updater.dispatcher
 
@@ -376,6 +493,9 @@ def main():
 
     dp.add_handler(conv_handler)
     dp.add_handler(conv_handler_timbrado)
+
+    # File manager filter
+    dp.add_handler(MessageHandler(Filters.document, file_manager))
 
     # los diferentes comandos para bot
     dp.add_handler(CommandHandler('start', start))

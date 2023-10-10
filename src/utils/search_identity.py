@@ -105,7 +105,7 @@ def find_identity_data(identity_number: str) -> str:
     contribuyente = search_contribuyente(identity_number)
 
     if contribuyente is not None:
-        return f'*Es contribuyente*\nRUC: `{contribuyente["ruc"]}`\nNombre: `{contribuyente["fullname"]}`'
+        return f'*Es contribuyente*\nRUC: `{contribuyente["ruc"]}`\nNombre: `{contribuyente["fullname"]}`\nEstado: `{contribuyente["status"]}`'
 
     elif contribuyente is None and not_contribuyente is not None:
         return f'*No es contribuyente*\nCI: `{not_contribuyente["ci"]}`\nNombre: `{not_contribuyente["fullname"]}`'

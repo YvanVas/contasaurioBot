@@ -35,6 +35,15 @@ class UsersModel(Base):
     username = Column(String(255))
     is_bot = Column(String(255))
 
+class MessagesModel(Base):
+    __tablename__ = 'messages'
+
+    id = Column(Integer, primary_key=True)
+    message_id = Column(Integer, nullable=False)
+    chat_id = Column(Integer, nullable=False)
+    from_user_id = Column(Integer, nullable=False)
+    text = Column(String)
+    date = Column(DateTime, nullable=False)
 
 Session = sessionmaker(bind=engine)
 session = Session()
