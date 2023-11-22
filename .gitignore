@@ -7,3 +7,4 @@ chats
 *.log
 *.db
 *.xlsx
+*.ipynb
