@@ -395,23 +395,30 @@ def search_timbrados_to_expire(context: CallbackContext) -> None:
     current_year = date_now.year
     current_month = date_now.month
 
-    nex_month = current_month + 1
-    next_year = current_year + 1
+    next_month = current_month + 1
+    if next_month == 13:
+        next_month = 1
+        next_year = current_year + 1
+
+        # Timbrados to expire next month and next year
+        timbrados_to_expire_next_month = TimbradosRepository(
+        session).get_timbrado_by_date(month=next_month, year=next_year)
+    else:
+        # Timbrados to expire next month
+        timbrados_to_expire_next_month = TimbradosRepository(
+        session).get_timbrado_by_date(month=next_month, year=current_year)
 
     # Timbrados to expire current month
     timbrados_to_expire_current_month = TimbradosRepository(
         session).get_timbrado_by_date(month=current_month, year=current_year)
 
-    # Timbrados to expire next month
-    timbrados_to_expire_next_month = TimbradosRepository(
-        session).get_timbrado_by_date(month=nex_month, year=current_year)
-
+   
     context.bot.send_message(
-        chat_id=GROUP_ID, text='Buen día, me quedé dormido 🥴')
+        chat_id=GROUP_ID, text='Buen día 🥴')
 
     if len(timbrados_to_expire_current_month) > 0:
         timbrados_information = [
-            f'Contribuyente: `{timbrado.client_name}`\nTimbrado: `{timbrado.timbrado_number}`\nN° Ini: `{timbrado.numero_inicio}`\nN° Fin: `{timbrado.numero_fin}`\nVencimiento: `{timbrado.end_date.strftime("%d/%m/%Y")}`'
+            f'Contribuyente: `{timbrado.client_name}`\nTimbrado: `{timbrado.timbrado_number}`\nN° Ini: `{timbrado.numero_inicio}`\nN° Fin: `{timbrado.numero_fin}`\nVencimiento: `{timbrado.end_date.strftime("%d/%m/%Y")}`\n'
             for timbrado in timbrados_to_expire_current_month
         ]
         message_timbrados_expire_current = '*Timbrados a vencer este mes*\n\n' + \
@@ -421,10 +428,10 @@ def search_timbrados_to_expire(context: CallbackContext) -> None:
 
     if len(timbrados_to_expire_next_month) > 0:
         timbrados_information_next = [
-            f'Contribuyente: `{timbrado.client_name}`\nTimbrado: `{timbrado.timbrado_number}`\nN° Ini: `{timbrado.numero_inicio}`\nN° Fin: `{timbrado.numero_fin}`\nVencimiento: `{timbrado.end_date.strftime("%d/%m/%Y")}`'
+            f'Contribuyente: `{timbrado.client_name}`\nTimbrado: `{timbrado.timbrado_number}`\nN° Ini: `{timbrado.numero_inicio}`\nN° Fin: `{timbrado.numero_fin}`\nVencimiento: `{timbrado.end_date.strftime("%d/%m/%Y")}`\n'
             for timbrado in timbrados_to_expire_next_month
         ]
-        message_timbrados_expire_next = '*Timbrados el siguiente mes*\n\n' + \
+        message_timbrados_expire_next = '*Timbrados a vencer el siguiente mes*\n\n' + \
             '\n'.join(timbrados_information_next)
         context.bot.send_message(
             chat_id=GROUP_ID, text=message_timbrados_expire_next, parse_mode=ParseMode.MARKDOWN)
@@ -438,18 +445,24 @@ def file_manager(update: Update, context: CallbackContext) -> None:
     # Download file
     file = context.bot.get_file(update.message.document.file_id)
     file_download = file.download()
-    print(f'se descargo el archivo: {file_download}')
+    #print(f'se descargo el archivo: {file_download}')
 
     # Format file
-    path_html = to_html(path_xlsx=file_download)
+    file = to_html(path_xlsx=file_download)
 
     chat_id = update.message.chat_id
-    document = open(path_html, 'rb')
+    document = open(file['path_html'], 'rb')
     context.bot.send_document(chat_id, document)
     document.close()
 
+    # Send resumen data
+    msg_resume = f'📊 *Resumen*\n_{file["file_name"]}_\n\n*Grav 10:* `{file["total_grav_10"]}`\n*Grav 5:* `{file["total_grav_5"]}`\n*Exenta:* `{file["total_exenta"]}`'
+    context.bot.send_message(chat_id, msg_resume, parse_mode= ParseMode.MARKDOWN)
+
+
+    # Delete file
     os.remove(path=file_download)
-    os.remove(path=path_html)
+    os.remove(path=file['path_html'])
 
 
 def main():
