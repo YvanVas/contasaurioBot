@@ -72,7 +72,16 @@ def total_data_sum(column_data: dict) -> float:
     return column_data
 
 
-def to_html(path_xlsx: str) -> str:
+def to_html(path_xlsx: str) -> dict:
+    """
+     response = {
+        'path_html': f'{file_name}.html',
+        'total_grav_10': total_grav_10,
+        'total_grav_5': total_grav_5,
+        'total_exenta': total_grav_exenta,
+        
+    }
+    """
     # Format file
     df = pd.read_excel(path_xlsx)
 
@@ -205,6 +214,18 @@ def to_html(path_xlsx: str) -> str:
 
     df = pd.DataFrame.from_dict(correct_data_dict)
 
+    # last element of the column -> suma total 10
+    last_key_grav_10 = list(correct_data_dict["Gravado 10%"]) [-1]
+    total_grav_10 = correct_data_dict['Gravado 10%'][last_key_grav_10]
+    # last element of the column -> suma total 5
+    last_key_grav_5 = list(correct_data_dict["Gravado 5%"]) [-1]
+    total_grav_5 = correct_data_dict['Gravado 5%'][last_key_grav_5]
+
+        # last element of the column -> suma total exenta
+    last_key_grav_exenta = list(correct_data_dict["Exenta"]) [-1]
+    total_exenta = correct_data_dict['Exenta'][last_key_grav_exenta]
+    
+
     html = df.to_html(index=False, justify=None)
 
     table = html.replace('\n', '').replace('NaN', '').replace('NaT', '')
@@ -214,4 +235,12 @@ def to_html(path_xlsx: str) -> str:
     with open(f'{file_name}.html', 'w') as f:
         f.write(html_content)
 
-    return f'{file_name}.html'
+    response = {
+        'total_grav_10': total_grav_10,
+        'total_grav_5': total_grav_5,
+        'total_exenta': total_exenta,
+        'file_name':file_name,
+        'path_html': f'{file_name}.html',
+    }
+
+    return response
