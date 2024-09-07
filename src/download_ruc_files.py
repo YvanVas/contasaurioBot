@@ -9,8 +9,8 @@ import zipfile
 from utils.export_files import delete_file
 
 PATH = 'archives/rucs'
-SET_URL = 'https://www.set.gov.py'
-URL = 'https://www.set.gov.py/web/portal-institucional/listado-de-ruc-con-sus-equivalencias'
+SET_URL = 'https://www.dnit.gov.py'
+URL = 'https://www.dnit.gov.py/web/portal-institucional/listado-de-ruc-con-sus-equivalencias'
 
 # Para soporte de SSL
 requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS += 'HIGH:!DH:!aNULL'
@@ -30,10 +30,10 @@ def download_zips() -> zip:
 
             page = requests.get(url)
 
-            patron = '/(\w*).zip'
+            patron = 'ruc.+\.zip'
             ruc = re.findall(patron, url)[0]
 
-            filename = f'{PATH}/{ruc}.zip'
+            filename = f'{PATH}/{ruc}'
 
             with open(filename, 'wb') as output_file:
                 output_file.write(page.content)
