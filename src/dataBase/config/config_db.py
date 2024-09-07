@@ -45,6 +45,17 @@ class MessagesModel(Base):
     text = Column(String)
     date = Column(DateTime, nullable=False)
 
+
+class ContribuyenteModel(Base):
+    __tablename__ = 'contribuyentes'
+
+    id = Column(Integer, primary_key=True)
+    ruc =Column(String(255))
+    dv = Column(String(100))
+    fullname = Column(String(255))
+    status = Column(String(100))
+
+
 Session = sessionmaker(bind=engine)
 session = Session()
 
