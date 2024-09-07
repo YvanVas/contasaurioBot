@@ -474,10 +474,10 @@ def main():
     locale.setlocale(locale.LC_ALL, 'es_ES.utf8')
 
     # obtener el job_queue del updater
-    job = updater.job_queue
+    #job = updater.job_queue
 
     # agregar la tarea programada al job_queue
-    job.run_once(search_timbrados_to_expire, 1)
+    #job.run_once(search_timbrados_to_expire, 1)
 
     #jobs = job.run_custom()
 
