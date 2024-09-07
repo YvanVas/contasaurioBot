@@ -12,7 +12,7 @@ class ConsultarCi:
     def __init__(self) -> None:
         options = Options()
 
-        options.add_argument("--headless")
+        #options.add_argument("--headless")
         self.bot = Firefox(options=options)
 
     def search_ci(self, ci: str) -> str:
