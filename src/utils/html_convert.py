@@ -79,11 +79,18 @@ def to_html(path_xlsx: str) -> dict:
         'total_grav_10': total_grav_10,
         'total_grav_5': total_grav_5,
         'total_exenta': total_grav_exenta,
-        
+
     }
     """
     # Format file
     df = pd.read_excel(path_xlsx)
+    
+    # Reemplaza acentos en todos los nombres de columnas
+    df.columns = df.columns.str.normalize('NFKD').str.encode(
+        'ascii', errors='ignore').str.decode('utf-8')
+
+    df['Fecha de Emision'] = pd.to_datetime(
+        df['Fecha de Emision'], dayfirst=True)
 
     # Order by date
     df = df.sort_values(by='Fecha de Emision')
@@ -105,7 +112,7 @@ def to_html(path_xlsx: str) -> dict:
         # To dict
         file_content_dict = df.to_dict()
         delete_columns = [
-            'RUC del Informante', 'Nombre o Razon Social del Informante', 'Condicion de la Operacion', 'Numero Comprobante Asociado', 'Timbrado del Comprobante Asociado'
+            'RUC del Informante', 'Nombre o Razon Social del Informante', 'Condicion de la Operacion', 'Numero de Comprobante Asociado', 'Timbrado del Comprobante Asociado'
         ]
 
     # delete innecessary data
@@ -113,41 +120,42 @@ def to_html(path_xlsx: str) -> dict:
         file_content_dict.pop(column)
 
     # Add complete ruc and fullname
-    rucs_column: dict = file_content_dict['RUC / N? de Identificacion del Informado']
+    # rucs_column: dict = file_content_dict['RUC / N? de Identificacion del Informado']
+    # rucs_column: dict = file_content_dict['RUC / No de Identificacion del Informado']
 
     # Declarate New dict reference to contribuyente name
-    contribuyentes_fullname = {}
-    for ruc in rucs_column:
-        # Ruc number
-        ruc_reference = str(rucs_column[ruc])
-        if ruc_reference == 'X':
-            contribuyentes_fullname[ruc] = 'SIN NOMBRE'
-        else:
-            contribuyente_data = search_contribuyente(ruc=ruc_reference)
+    # contribuyentes_fullname = {}
+    # for ruc in rucs_column:
+    #     # Ruc number
+    #     ruc_reference = str(rucs_column[ruc])
+    #     if ruc_reference == 'X':
+    #         contribuyentes_fullname[ruc] = 'SIN NOMBRE'
+    #     else:
+    #         #contribuyente_data = search_contribuyente(ruc=ruc_reference)
 
-            if contribuyente_data == None:
+    #         if contribuyente_data == None:
 
-                contribuyente_data = search_identity_number(
-                    identity_number=ruc_reference)
+    #             contribuyente_data = search_identity_number(
+    #                 identity_number=ruc_reference)
 
-                if contribuyente_data == None:
-                    print(ruc_reference)
-                    # Search Marangatu
-                    contribuyente_data = ConsultarCi().search_ci(ci=ruc_reference)
-                    rucs_column[ruc] = contribuyente_data['ci']
-                    contribuyentes_fullname[ruc] = normalizate_chars(
-                        contribuyente_data['fullname'])
-                else:
-                    rucs_column[ruc] = contribuyente_data['ci']
-                    contribuyentes_fullname[ruc] = normalizate_chars(
-                        contribuyente_data['fullname'])
-            else:
-                rucs_column[ruc] = contribuyente_data['ruc']
-                contribuyentes_fullname[ruc] = normalizate_chars(
-                    contribuyente_data['fullname'])
+    #             if contribuyente_data == None:
+    #                 print(ruc_reference)
+    #                 # Search Marangatu
+    #                 contribuyente_data = ConsultarCi().search_ci(ci=ruc_reference)
+    #                 rucs_column[ruc] = contribuyente_data['ci']
+    #                 contribuyentes_fullname[ruc] = normalizate_chars(
+    #                     contribuyente_data['fullname'])
+    #             else:
+    #                 rucs_column[ruc] = contribuyente_data['ci']
+    #                 contribuyentes_fullname[ruc] = normalizate_chars(
+    #                     contribuyente_data['fullname'])
+    #         else:
+    #             rucs_column[ruc] = contribuyente_data['ruc']
+    #             contribuyentes_fullname[ruc] = normalizate_chars(
+    #                 contribuyente_data['fullname'])
 
-    # Add new column with fullname
-    file_content_dict['Razon Social'] = contribuyentes_fullname
+    # # Add new column with fullname
+    # file_content_dict['Razon Social'] = contribuyentes_fullname
 
     # Add montos gravados 10
     column_montos_10 = file_content_dict['Monto Gravado 10%']
@@ -194,8 +202,9 @@ def to_html(path_xlsx: str) -> dict:
         fechas[column] = fecha
 
     # New columns order
+   
     new_order = [
-        "Fecha de Emision", "RUC / N? de Identificacion del Informado", "Razon Social", "Tipo de Comprobante",
+        "Fecha de Emision", "RUC / No de Identificacion del Informado", "Nombre o Razon Social del Informado", "Tipo de Comprobante",
         "Timbrado del Comprobante", "Numero de Comprobante", "Monto Gravado 10%", "Gravado 10%", "IVA 10%", "Monto Gravado 5%", "Gravado 5%", "IVA 5%", "Monto No Gravado / Exento ", "Total Comprobante",
         "Imputa IVA", "Imputa IRE",	"Imputa IRP"
     ]
@@ -215,16 +224,15 @@ def to_html(path_xlsx: str) -> dict:
     df = pd.DataFrame.from_dict(correct_data_dict)
 
     # last element of the column -> suma total 10
-    last_key_grav_10 = list(correct_data_dict["Gravado 10%"]) [-1]
+    last_key_grav_10 = list(correct_data_dict["Gravado 10%"])[-1]
     total_grav_10 = correct_data_dict['Gravado 10%'][last_key_grav_10]
     # last element of the column -> suma total 5
-    last_key_grav_5 = list(correct_data_dict["Gravado 5%"]) [-1]
+    last_key_grav_5 = list(correct_data_dict["Gravado 5%"])[-1]
     total_grav_5 = correct_data_dict['Gravado 5%'][last_key_grav_5]
 
-        # last element of the column -> suma total exenta
-    last_key_grav_exenta = list(correct_data_dict["Exenta"]) [-1]
+    # last element of the column -> suma total exenta
+    last_key_grav_exenta = list(correct_data_dict["Exenta"])[-1]
     total_exenta = correct_data_dict['Exenta'][last_key_grav_exenta]
-    
 
     html = df.to_html(index=False, justify=None)
 
@@ -239,7 +247,7 @@ def to_html(path_xlsx: str) -> dict:
         'total_grav_10': total_grav_10,
         'total_grav_5': total_grav_5,
         'total_exenta': total_exenta,
-        'file_name':file_name,
+        'file_name': file_name,
         'path_html': f'{file_name}.html',
     }
 
